@@ -3,6 +3,7 @@ import { ScrollView, View, Text, Alert } from "react-native";
 import { Card, TextInput, Button } from "react-native-paper";
 import emailValidation from "../validations/email-validation";
 import { useForm, Controller } from "react-hook-form";
+import * as services from './services/account-services';
 export default function PasswordForm({ navigation }) {
     //declarando es elementos do formulário
     const {
@@ -14,11 +15,36 @@ export default function PasswordForm({ navigation }) {
         reset// limpar o formulário
     } = useForm();
     //função para capturar o eevnto SUBMIT do formulário
-    const onSubmit = () => {
-        Alert.alert(
-            'Sucesso!',
-            'Verifique a senha enviada para a sua conta de email.'
-        );
+    const onSubmit = (data) => {
+        services.postPssword(data)
+            .then(
+                result => {
+                    reset({
+                        email: ""
+                    });
+                    Alert.alert(
+                        'Sucesso!',
+                        result.message
+                    );
+                }
+            )
+            .catch(
+                e => {
+                    switch (e.response.status) {
+                        case 422:
+                            Alert.alert(
+                                'Usuário inválido!!',
+                                e.response.data)
+                            break;
+                        default:
+                            Alert.alert(
+                                'Falha ao recuperar senha!!',
+                                'Operação não pode ser realizada.')
+                            break;
+                    }
+                }
+            )
+
     }
     return (
         <ScrollView style={{ backgroundColor: '#fff' }}>

@@ -4,7 +4,8 @@ import { Button, Card, TextInput } from "react-native-paper";
 import emailValidation from "../validations/email-validation";
 import passwordValidation from "../validations/password-validation";
 import { useForm, Controller } from "react-hook-form";
-
+import * as services from './services/account-services';
+import * as authHelpers from '../helpers/auth-helpers';
 //criando o componente como função
 export default function LoginForm({ navigation }) {
     //declarando os elementos do formulário
@@ -16,19 +17,45 @@ export default function LoginForm({ navigation }) {
         },
         reset //limpar os campos do formulário
     } = useForm();
-    const onSubmit = () => {
-        Alert.alert(
-            'Seja bem vindo.', //título da mensagem,
-            'Autenticação realizada com sucesso!'
-        )
+    const onSubmit = (data) => {
+        services.postLogin(data)
+            .then(
+                result => {
+                    reset({ email: '', senha: '' })
+                    Alert.alert(
+                        'Seja bem vindo!', result.mensagem
+                    )
+                    //gravar os dados obtidos na memória do aplicativo!
+                    authHelpers.signIn(result);
+                    navigation.navigate('home');
+                }
+            )
+            .catch(
+                e => {
+                    switch (e.response.status) {
+                        case 401:
+                            Alert.alert(
+                                'Acessso negado', //título da mensagem,
+                                e.response.data
+                            )
+                            break;
+                        default:
+                            Alert.alert(
+                                'Falha', //título da mensagem,
+                                'Não foi possivel realizar a operação, tente novamente'
+                            )
+                            break;
+                    }
+                }
+            )
+
     }
     return (
         <ScrollView>
             <Card>
                 <Card.Cover
                     source={{
-                        uri:
-                            "https://cdn.consumidormoderno.com.br/wp-content/uploads/2021/06/Business-Performance.jpg"
+                        uri: "https://cdn.consumidormoderno.com.br/wp-content/uploads/2021/06/Business-Performance.jpg"
                     }} />
                 <Card.Title
                     title="Acesso ao Sistema"

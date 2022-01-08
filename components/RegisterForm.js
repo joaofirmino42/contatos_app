@@ -5,7 +5,8 @@ import textFieldValidation from '../validations/textfield-validation';
 import emailValidation from '../validations/email-validation';
 import passwordValidation from '../validations/password-validation';
 import { useForm, Controller } from "react-hook-form";
-export default function RegisterForm(navigation) {
+import * as services from './services/account-services';
+export default function RegisterForm({ navigation }) {
     const {
         control, //captura de cada campo do formulário
         handleSubmit, //capturar o evento de SUBMIT do formulário
@@ -15,8 +16,53 @@ export default function RegisterForm(navigation) {
         reset //limpar o formulário
     } = useForm();
     //função para capturar o evento SUBMIT o dormulário
-    const onSubmit = () => {
-        Alert.alert('Parabéns!', 'sua conta de usuário foi criada cpm sucesso.');
+    const onSubmit = (data) => {
+
+        //executando o serviço da API
+        services.postRegister(data)
+            .then(
+                //capturando a resposta de sucesso (promisse)
+                result => {
+                    //limpar os campos da tela
+                    reset({
+                        nome: '',
+                        email: '',
+                        senha: '',
+                        senhaConfirmacao: ''
+                    });
+                    Alert.alert('Parabéns!'
+                        , result.message);
+                }
+            )
+            .catch(
+                //capturando a resposta de erro (promisse)
+                e => {
+                    switch (e.response.status) {
+                        case 400:
+                            Alert.alert(
+                                'Erro!',
+                                e.response.data.errors.SenhaConfirmacao[0]
+                            )
+                            break;
+                        case 422:
+                            Alert.alert('Usuário inválido!'
+                                , e.response.data)
+                            break;
+                        default:
+                            Alert.alert(
+                                'Falha!',
+                                'Erro no caadstro'
+
+                            )
+                            break;
+                    }
+
+
+
+                }
+            )
+
+
     }
     return (
         <ScrollView style={{ backgroundColor: '#fff' }}>
